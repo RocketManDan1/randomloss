@@ -1,0 +1,5 @@
+# Random Item Loss Module
+#
+# Deletes a random equipped item when a player dies.
+
+RandomItemLoss.Enabled = 1
