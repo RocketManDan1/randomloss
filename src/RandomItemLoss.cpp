@@ -8,16 +8,18 @@ class RandomItemLossPlayerScript : public PlayerScript
 public:
     RandomItemLossPlayerScript() : PlayerScript("RandomItemLossPlayerScript") { }
 
-    void OnKilledByCreature(Player* victim, Creature* killer) override
+    // Override these methods with the 'virtual' keyword, so the compiler recognizes them correctly.
+    virtual void OnKilledByCreature(Player* victim, Creature* killer) override
     {
         HandlePlayerDeath(victim);
     }
 
-    void OnKilledByPlayer(Player* victim, Player* killer) override
+    virtual void OnKilledByPlayer(Player* victim, Player* killer) override
     {
         HandlePlayerDeath(victim);
     }
 
+private:
     void HandlePlayerDeath(Player* player)
     {
         if (!sConfigMgr->GetOption<bool>("RandomItemLoss.Enabled", true))
