@@ -9,12 +9,12 @@ public:
     RandomItemLossPlayerScript() : PlayerScript("RandomItemLossPlayerScript") { }
 
     // Override these methods with the 'virtual' keyword, so the compiler recognizes them correctly.
-    virtual void OnKilledByCreature(Player* victim, Creature* killer) override
+    virtual void OnKilledByCreature(Player* victim, Creature* killer)
     {
         HandlePlayerDeath(victim);
     }
 
-    virtual void OnKilledByPlayer(Player* victim, Player* killer) override
+    virtual void OnKilledByPlayer(Player* victim, Player* killer)
     {
         HandlePlayerDeath(victim);
     }
