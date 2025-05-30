@@ -1,71 +1,47 @@
-#include "ScriptMgr.h"
 #include "Player.h"
-#include "Config.h"
-#include "Random.h"
+#include "ScriptMgr.h"
+#include "EquipmentMgr.h"
+#include <vector>
+#include <random>
 
-class RandomItemLossPlayerScript : public PlayerScript
+class RandomItemDeleteOnDeath : public PlayerScript
 {
 public:
-    RandomItemLossPlayerScript() : PlayerScript("RandomItemLossPlayerScript") { }
+    RandomItemDeleteOnDeath() : PlayerScript("RandomItemDeleteOnDeath") { }
 
-    // Override these methods with the 'virtual' keyword, so the compiler recognizes them correctly.
-    virtual void OnKilledByCreature(Player* victim, Creature* killer)
+    void OnDeath(Player* player, Unit* /*killer*/) override
     {
-        HandlePlayerDeath(victim);
-    }
-
-    virtual void OnKilledByPlayer(Player* victim, Player* killer)
-    {
-        HandlePlayerDeath(victim);
-    }
-
-private:
-    void HandlePlayerDeath(Player* player)
-    {
-        if (!sConfigMgr->GetOption<bool>("RandomItemLoss.Enabled", true))
-            return;
-
         std::vector<uint8> equippedSlots;
 
-        // Loop over EQUIPMENT_SLOT_START to EQUIPMENT_SLOT_END
         for (uint8 slot = EQUIPMENT_SLOT_START; slot < EQUIPMENT_SLOT_END; ++slot)
         {
-            if (player->GetItemByPos(INVENTORY_SLOT_BAG_0, slot))
+            if (Item* item = player->GetItemByPos(INVENTORY_SLOT_EQUIPPED, slot))
+            {
                 equippedSlots.push_back(slot);
+            }
         }
 
         if (equippedSlots.empty())
             return;
 
-        // Select a random equipped slot
-        uint8 randomSlot = equippedSlots[urand(0, equippedSlots.size() - 1)];
-        Item* item = player->GetItemByPos(INVENTORY_SLOT_BAG_0, randomSlot);
+        // Randomly choose one slot to delete
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<> dis(0, equippedSlots.size() - 1);
 
-        if (item)
+        uint8 randomSlot = equippedSlots[dis(gen)];
+
+        if (Item* itemToDelete = player->GetItemByPos(INVENTORY_SLOT_EQUIPPED, randomSlot))
         {
-            player->DestroyItemCount(item->GetEntry(), 1, true);
-            ChatHandler(player->GetSession()).SendSysMessage("A mysterious force has taken one of your equipped items...");
+            uint32 itemId = itemToDelete->GetEntry();
+            player->DestroyItemCount(itemId, 1, true);
+
+            ChatHandler(player->GetSession()).SendSysMessage("One of your equipped items has been destroyed due to death!");
         }
     }
 };
 
-class mod_random_item_loss_on_death : public ModuleScript
+void Addmod_random_item_delete_on_deathScripts()
 {
-public:
-    mod_random_item_loss_on_death() : ModuleScript("mod_random_item_loss_on_death") { }
-
-    void OnBeforeConfigLoad(bool /*reload*/) override
-    {
-        sConfigMgr->LoadMoreConfig("conf/random_item_loss.conf");
-    }
-
-    void OnAllModulesLoaded() override
-    {
-        new RandomItemLossPlayerScript();
-    }
-};
-
-void Addmod_random_item_loss_on_death()
-{
-    new mod_random_item_loss_on_death();
+    new RandomItemDeleteOnDeath();
 }
