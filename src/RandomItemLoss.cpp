@@ -1,6 +1,6 @@
 #include "Player.h"
 #include "ScriptMgr.h"
-#include "EquipmentMgr.h"
+#include "Chat.h"
 #include <vector>
 #include <random>
 
@@ -15,7 +15,7 @@ public:
 
         for (uint8 slot = EQUIPMENT_SLOT_START; slot < EQUIPMENT_SLOT_END; ++slot)
         {
-            if (Item* item = player->GetItemByPos(INVENTORY_SLOT_EQUIPPED, slot))
+            if (Item* item = player->GetItemByPos(INVENTORY_SLOT_BAG_0, slot))
             {
                 equippedSlots.push_back(slot);
             }
@@ -31,12 +31,10 @@ public:
 
         uint8 randomSlot = equippedSlots[dis(gen)];
 
-        if (Item* itemToDelete = player->GetItemByPos(INVENTORY_SLOT_EQUIPPED, randomSlot))
+        if (Item* itemToDelete = player->GetItemByPos(INVENTORY_SLOT_BAG_0, randomSlot))
         {
-            uint32 itemId = itemToDelete->GetEntry();
-            player->DestroyItemCount(itemId, 1, true);
-
-            ChatHandler(player->GetSession()).SendSysMessage("One of your equipped items has been destroyed due to death!");
+            player->DestroyItemCount(itemToDelete->GetEntry(), 1, true);
+            ChatHandler(player->GetSession()).SendSysMessage("A randomly equipped item was destroyed on death.");
         }
     }
 };
